@@ -185,6 +185,18 @@ public class YamlValidatorPluginIntTest {
         assertThat(output, containsString(expectedLineInOutput));
     }
 
+    @Test
+    public void shouldProduceNoOutputWhenSilent() {
+        writeFile("plugins { id 'at.zierler.yamlvalidator' }\n" +
+                "yamlValidator { silent = true }", buildFile);
+        String output = GradleRunner
+                .create()
+                .withProjectDir(testProjectDir.getRoot())
+                .withPluginClasspath()
+                .withArguments(VALIDATE_YAML_TASK_NAME).build().getOutput();
+        assertThat(output, not(containsString("YAML")));
+    }
+
     private void writeBuildFileWithoutProperties() {
 
         writeFile(

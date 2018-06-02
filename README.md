@@ -70,6 +70,11 @@ The following are all possible configuration options:
 		<td>false</td>
 		<td>Search directories defined in `searchPaths` recursively.</td>
 	</tr>
+    <tr>
+        <td>silent</td>
+        <td>false</td>
+        <td>Suppress the log output of the task. </td>
+    </tr>	
 </table>
 
 Those are the configuration options, as in an `build.gradle` file, with their default values:
@@ -79,5 +84,6 @@ yamlValidator {
     searchPaths = ['src/main/resources/']
     allowDuplicates = false
     searchRecursive = false
+    silent = false
 }
 ```

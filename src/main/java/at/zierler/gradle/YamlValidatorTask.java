@@ -2,6 +2,7 @@ package at.zierler.gradle;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
+import org.gradle.api.logging.Logger;
 import org.gradle.api.tasks.TaskAction;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -20,10 +21,10 @@ public class YamlValidatorTask extends DefaultTask {
     static final String FILE_FAILURE_MESSAGE = "Validation of YAML file '%s' failed.";
 
     private final ValidationProperties validationProperties;
+    private Logger validationLogger;
     private Yaml yaml;
 
     public YamlValidatorTask() {
-
         this.validationProperties = getProject().getExtensions().findByType(ValidationProperties.class);
     }
 
@@ -72,13 +73,20 @@ public class YamlValidatorTask extends DefaultTask {
 
     private void validateYamlFilesOnlyDirectlyInDirectory(Path directory) throws IOException {
 
-        System.out.println(String.format(STARTING_DIRECTORY_MESSAGE, directory));
+        getValidationLogger().lifecycle(String.format(STARTING_DIRECTORY_MESSAGE, directory));
         Files.list(directory).filter(this::isYamlFile).forEach(this::validateYamlFile);
+    }
+
+    private Logger getValidationLogger() {
+        if (validationLogger == null) {
+            this.validationLogger = validationProperties.isSilent() ? NullLogger.NULL_LOGGER : getLogger();
+        }
+        return validationLogger;
     }
 
     private void validateYamlFilesInDirectoryRecursively(Path directory) throws IOException {
 
-        System.out.println(String.format(STARTING_DIRECTORY_RECURSIVE_MESSAGE, directory));
+        getValidationLogger().lifecycle(String.format(STARTING_DIRECTORY_RECURSIVE_MESSAGE, directory));
         Files.walk(directory).filter(this::isYamlFile).forEach(this::validateYamlFile);
     }
 
@@ -97,7 +105,7 @@ public class YamlValidatorTask extends DefaultTask {
 
     private void validateYamlFile(Path file) {
 
-        System.out.println(String.format(STARTING_FILE_MESSAGE, file));
+        getValidationLogger().lifecycle(String.format(STARTING_FILE_MESSAGE, file));
 
         try (InputStream yamlFileInputStream = Files.newInputStream(file)) {
             yamlLoader().load(yamlFileInputStream);
@@ -105,7 +113,7 @@ public class YamlValidatorTask extends DefaultTask {
             throw new GradleException(String.format(FILE_FAILURE_MESSAGE, file), e);
         }
 
-        System.out.println(String.format(FILE_SUCCESS_MESSAGE, file));
+        getValidationLogger().lifecycle(String.format(FILE_SUCCESS_MESSAGE, file));
     }
 
     private Yaml yamlLoader() {
